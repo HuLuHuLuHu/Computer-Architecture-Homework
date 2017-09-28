@@ -32,6 +32,18 @@ module alu(
 	output reg [`DATA_WIDTH - 1:0] Result
 );
 
+parameter AND  = 4'b0000
+parameter OR   = 4'b0001
+parameter ADD  = 4'b0010
+parameter SUB  = 4'b0011
+parameter SLT  = 4'b0100
+parameter SLTU = 4'b0101
+parameter SLL  = 4'b0110
+parameter SLR  = 4'b0111
+parameter SAL  = 4'b1000
+parameter SAR  = 4'b1001
+parameter LUI  = 4'b1010
+	
 reg carryout_low;
 reg [`DATA_WIDTH - 2:0] result_low;
 
@@ -39,7 +51,7 @@ reg [`DATA_WIDTH - 2:0] result_low;
 always @(A or B or ALUop)
 begin
 case (ALUop)
-    3'b000://and
+    AND:
     begin
     Result = A & B;
       Zero = (Result == 0) ? 1 :  0;
@@ -47,7 +59,7 @@ case (ALUop)
       CarryOut = 0;
     end
  
-    3'b001://or
+    OR:
     begin
       Result = A | B;
       Zero = (Result == 0) ? 1 :  0;  
@@ -55,7 +67,7 @@ case (ALUop)
       CarryOut = 0;
     end
    
-    3'b010://add
+    ADD:
     begin
     {CarryOut,Result }= A + B;
      {carryout_low,result_low} = A[`DATA_WIDTH - 2:0] +B[`DATA_WIDTH - 2:0] ;
@@ -63,7 +75,7 @@ case (ALUop)
     Overflow = CarryOut ^ carryout_low;
     end
 
-    3'b110://sub
+    SUB:
     begin
   {CarryOut, Result} = A + ~B +1;
    {carryout_low,result_low} = A[`DATA_WIDTH - 2:0] +~B[`DATA_WIDTH - 2:0]+1 ;
@@ -71,7 +83,7 @@ case (ALUop)
     Zero = (Result == 0) ? 1 :  0;
     end
  
-    3'b111://slt
+    SLT:
     begin
     {CarryOut, Result} = A + ~B +1;
      {carryout_low,result_low} = A[`DATA_WIDTH - 2:0] +~B[`DATA_WIDTH - 2:0]+1 ;
@@ -83,7 +95,7 @@ case (ALUop)
     Overflow = 0;
     end
     
-     3'b100://sltiu
+    SLTU:
     begin
     Result = (A<B)? 1 : 0;
     Zero = 0;
@@ -91,15 +103,39 @@ case (ALUop)
     Overflow = 0;
     end
     
-    3'b011://sll
+    SLL:
     begin
-    Result = A<<B;
+    Result = B<<A;
     Zero = 0;
     CarryOut = 0;
     Overflow = 0;
     end
 
-    3'b101://lui
+    SLR:
+    begin
+    Result = B>>A;
+    Zero = 0;
+    CarryOut = 0;
+    Overflow = 0;
+    end
+
+    SAL:
+    begin
+    Result = B<<A;
+    Zero = 0;
+    CarryOut = 0;
+    Overflow = 0;
+    end
+
+    SAR:
+    begin
+    Result = {A{B[31]},B[31:A]};
+    Zero = 0;
+    CarryOut = 0;
+    Overflow = 0;
+    end
+
+    LUI:
     begin
     Result = {B[15:0],16'd0};
     Zero = 0;
@@ -116,4 +152,6 @@ case (ALUop)
     end
 endcase     
 end
+
 endmodule
+
